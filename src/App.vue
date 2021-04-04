@@ -94,14 +94,8 @@
             <v-tab href="#buttplugpanel">
               Buttplug
             </v-tab>
-            <v-tab href="#mqttpanel">
-              MQTT
-            </v-tab>
             <v-tab href="#coyotepanel">
               Coyote
-            </v-tab>
-            <v-tab href="#tobiipanel">
-              Tobii
             </v-tab>
             <v-tab href="#aboutpanel">
               About
@@ -184,64 +178,6 @@
                       v-if="coyote === null"
                       @click="connectCoyote">Connect</v-btn>
                 </v-layout>
-              </v-tab-item>
-              <v-tab-item id="tobiipanel">
-                  <v-layout column id="buttplug-connection-manager" class="buttplug-sidebar">
-                  <v-subheader>Connection</v-subheader>
-                  <v-flex row v-if="!isTobiiConnected">
-                    <v-text-field
-                      label="TobiiSocketServer Address"
-                      class="form-text"
-                      v-model="tobiiAddress">
-                    </v-text-field>
-                  </v-flex>
-                  <v-btn
-                    v-if="!isTobiiConnected"
-                    @click="connectTobii">Connect</v-btn>
-                  </v-layout>
-              </v-tab-item>
-              <v-tab-item id="mqttpanel">
-                <v-layout column class="sidebar-form">
-                  <v-flex>
-                     <v-flex>
-                    <v-subheader>MQTT</v-subheader>
-                      <v-text-field
-                      clearable
-                      v-if="!mqttConnected"
-                      v-model="mqttServer"
-                      label="MQTT-Server"></v-text-field>
-                      <v-text-field
-                      clearable
-                      v-if="!mqttConnected"
-                      v-model="mqttTopic"
-                      label="Publish Topic"></v-text-field>
-                      <v-checkbox
-                      v-model="mqttAuth"
-                      v-if="!mqttConnected"
-                      label="Auth"></v-checkbox>
-                      <v-flex row v-if="mqttAuth">
-                        <v-text-field
-                        v-if="!mqttConnected"
-                        label="MQTT-User"
-                        class="form-text"
-                        v-model="mqttUser"></v-text-field>
-                        <v-text-field
-                        v-if="!mqttConnected"
-                        label="MQTT-Password"
-                        class="form-password"
-                        v-model="mqttPassword"></v-text-field>
-                      </v-flex>
-                      <v-btn
-                        v-if="!mqttConnected"
-                        @click="connectMqtt">Connect</v-btn>
-                        <v-btn
-                        v-if="mqttConnected"
-                        @click="disconnectMqtt">Disconnect</v-btn>
-                  </v-flex>
-                  </v-flex>
-                  </v-layout>
-
-
               </v-tab-item>
               <v-tab-item id="aboutpanel">
                 <p><b>Syncydink</b></p>

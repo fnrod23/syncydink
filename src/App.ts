@@ -23,7 +23,6 @@ import { ButtplugPanelComponent } from "vue-buttplug-material-component";
 
 import { utils } from "aframe";
 import { watch } from "fs";
-import { connect, MqttClient } from "mqtt";
 import * as d3 from "d3";
 import {CoyoteDevice, CoyotePower, pairDevice} from "./utils/Coyote";
 
@@ -50,21 +49,12 @@ export default class App extends Vue {
   private vrMode: boolean = false;
   private videoFile: File | string | null = null;
 
-  private mqttConnected: boolean = false;
-  private mqttServer: string = localStorage.getItem("mqttServer") || "ws://localhost:9001";
-  private mqttTopic: string = localStorage.getItem("mqttTopic") || "syncydink";
-  private mqttAuth: boolean = localStorage.getItem("mqttAuth") === "true";
-  private mqttUser: string | null = localStorage.getItem("mqttUser");
-  private mqttPassword: string | null = localStorage.getItem("mqttPassword");
-  private mqttClient: MqttClient | null = null;
   private coyote: CoyoteDevice | null = null;
-  private mqttLastPublishedPlaytime: number = 0;
   private currentPlayTime: number = 0;
 
   // Haptic selection properties
   private showHapticsTimeline: boolean = false;
   private loadTensorflowModel: boolean = false;
-  private isTobiiConnected: boolean = false;
   private showSimulator: boolean = false;
   private hapticsCommands: FunscriptCommand[] = [];
   private commands: Map<number, ButtplugDeviceMessage[]> = new Map();
@@ -84,9 +74,6 @@ export default class App extends Vue {
   // Buttplug properties
   private devices: ButtplugClientDevice[] = [];
 
-  // Tobii properties
-  private readonly tobiiAddress: string = "ws://localhost:TODOPORT";
-
   // Coyote properties
   private coyotePower: CoyotePower = { powerA: 0, powerB: 0 };
 
@@ -104,9 +91,6 @@ export default class App extends Vue {
     Mousetrap.bind("esc", () => this.ToggleLeftSideNav());
     // this.loadHapticsTestData();
 
-    if (localStorage.getItem("mqttConnectedSuccessfully") === "true") {
-      this.connectMqtt();
-    }
   }
 
   private SideNavOpen() {
@@ -140,70 +124,11 @@ export default class App extends Vue {
     process.nextTick(() => window.dispatchEvent(new Event("resize")));
   }
 
-  private rememberMqttSettings() {
-    localStorage.setItem("mqttServer", this.mqttServer);
-    localStorage.setItem("mqttTopic", this.mqttTopic);
-    localStorage.setItem("mqttAuth", this.mqttAuth ? "true" : "false");
-    if (this.mqttUser) {
-      localStorage.setItem("mqttUser", this.mqttUser);
-    } else {
-      localStorage.removeItem("mqttUser");
-    }
-    if (this.mqttPassword) {
-      localStorage.setItem("mqttPassword", this.mqttPassword);
-    } else {
-      localStorage.removeItem("mqttPassword");
-    }
-  }
-
-  private disconnectMqtt() {
-    this.mqttClient?.end(true, {}, () => {
-      this.mqttClient = null;
-      this.mqttConnected = false;
-      localStorage.removeItem("mqttConnectedSuccessfully");
-    });
-  }
-
-  private connectTobii() {
-    // TODO
-  }
-
   private async connectCoyote() {
     const dev = await pairDevice(undefined, (power) => {
         this.coyotePower = power;
     });
     this.coyote = dev[1];
-  }
-
-  private connectMqtt() {
-    this.rememberMqttSettings();
-    this.disconnectMqtt();
-
-    this.mqttClient = connect(this.mqttServer, {
-      username: this.mqttUser || undefined,
-      password: this.mqttPassword || undefined,
-      will: { topic: `${this.mqttTopic}/state`, qos: 1, retain: true, payload: "gone" },
-    });
-    this.mqttClient.once("connect",
-      () => {
-        this.mqttClient?.publish(`${this.mqttTopic}/state`, "ready", { retain: true, qos: 1 });
-        this.mqttConnected = true;
-        localStorage.setItem("mqttConnectedSuccessfully", "true");
-      });
-
-    this.mqttClient.subscribe(`${this.mqttTopic}/pause/set`, { qos: 1 });
-    this.mqttClient.subscribe(`${this.mqttTopic}/play/set`, { qos: 1 });
-
-    this.mqttClient.on("message", (topic) => {
-      if (topic === `${this.mqttTopic}/pause/set`) {
-        console.info("pausing");
-        this.onPause();
-      } else if (topic === `${this.mqttTopic}/play/set`) {
-        this.onPlay();
-        console.info("playing");
-      }
-    });
-
   }
 
   /////////////////////////////////////
@@ -244,9 +169,6 @@ export default class App extends Vue {
       this.hapticsCommands.push(new FunscriptCommand(0, 0));
       this.hapticsCommands.push(new FunscriptCommand(duration, 0));
     }
-    if (this.mqttClient && this.mqttClient.connected) {
-      this.mqttClient.publish(`${this.mqttTopic}/duration`, `${duration}`, { retain: true, qos: 1 });
-    }
   }
 
   private onHapticsFileChange(hapticsFile: FileList) {
@@ -268,18 +190,12 @@ export default class App extends Vue {
   private onPlay() {
     this.paused = false;
     this.runHapticsLoop();
-    if (this.mqttClient && this.mqttClient.connected) {
-      this.mqttClient.publish(`${this.mqttTopic}/playing`, "true", { retain: true, qos: 1 });
-    }
   }
 
   private onPause() {
     this.paused = true;
     if (this.devices.length > 0) {
       (Vue as any).Buttplug.StopAllDevices();
-    }
-    if (this.mqttClient && this.mqttClient.connected) {
-      this.mqttClient.publish(`${this.mqttTopic}/playing`, "false", { retain: true, qos: 1 });
     }
 
     if (this.coyote !== null) {
@@ -289,10 +205,6 @@ export default class App extends Vue {
 
   private onTimeUpdate(time: number) {
     this.currentPlayTime = time;
-    if (this.mqttClient && this.mqttClient.connected && (time - this.mqttLastPublishedPlaytime) > 100) {
-      this.mqttLastPublishedPlaytime = time;
-      this.mqttClient.publish(`${this.mqttTopic}/currentPlayTime`, `${time}`, { retain: true, qos: 1 });
-    }
   }
 
   private onInputTimeUpdate(time: number) {
@@ -339,16 +251,6 @@ export default class App extends Vue {
       if (msgs !== undefined) {
         this.currentMessages = msgs!;
         for (const aMsg of msgs) {
-
-          if (this.mqttClient && this.mqttClient.connected) {
-            if (aMsg instanceof FleshlightLaunchFW12Cmd) {
-              // this.mqttClient.publish(`${this.mqttTopic}/${aMsg.Type.name}/Position`, `${aMsg.Position}`);
-              // this.mqttClient.publish(`${this.mqttTopic}/${aMsg.Type.name}/Speed`, `${aMsg.Speed}`);
-            } else if (aMsg instanceof SingleMotorVibrateCmd) {
-              this.mqttClient.publish(`${this.mqttTopic}/${aMsg.Type.name}/Speed`, `${aMsg.Speed}`);
-            }
-          }
-
           for (const device of this.devices) {
             if (device.AllowedMessages.indexOf(aMsg.Type.name) === -1) {
               continue;
@@ -374,7 +276,8 @@ export default class App extends Vue {
 
         const interpolatedValue = d3.interpolate(Position, NextPosition)((currentTime - Time) / (NextTime - Time));
         // check for pause Fade
-        const pauseTime = 500;
+        const pauseTime = 5000;
+        const fadeTime = 300;
         let distanceTime =
             Math.min((currentTime - Time), (NextTime - currentTime)); // distance to next action in script
         if (Time === 0) {
@@ -383,7 +286,7 @@ export default class App extends Vue {
 
         // if distance is longer than pauseTime, fade linearly.
         const filterAmp = (NextTime - Time) > pauseTime ?
-            Math.min(1.0, Math.max(0.0, (pauseTime - distanceTime) / pauseTime)) : 1.0;
+            Math.min(1.0, Math.max(0.0, (fadeTime - distanceTime) / fadeTime)) : 1.0;
         console.log(distanceTime, filterAmp);
         const midZone = 50;
         const deadZone = 25;
@@ -391,9 +294,9 @@ export default class App extends Vue {
         const amplitudeA = Math.min(ampMax, Math.max(0, (interpolatedValue + deadZone - midZone) / 50 * ampMax ));
         const amplitudeB = Math.min(ampMax, Math.max(0, (midZone - interpolatedValue + deadZone) / 50 * ampMax ));
         // const amplitude = 20 - Math.floor(interpolatedValue / 100 * 20); // 0..20
-        const pulseDuration = 10;
-        this.coyote.writePatternA({ amplitude: amplitudeA * filterAmp, pulseDuration, dutyCycle: 16});
-        this.coyote.writePatternB({ amplitude: amplitudeB * filterAmp, pulseDuration, dutyCycle: 16});
+        const pulseDuration = 1;
+        this.coyote.writePatternA({ amplitude: amplitudeA * filterAmp, pulseDuration, dutyCycle: 9});
+        this.coyote.writePatternB({ amplitude: amplitudeB * filterAmp, pulseDuration, dutyCycle: 9});
       }
 
       if (!this.paused) {
