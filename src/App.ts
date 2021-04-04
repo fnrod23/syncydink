@@ -287,16 +287,16 @@ export default class App extends Vue {
         // if distance is longer than pauseTime, fade linearly.
         const filterAmp = (NextTime - Time) > pauseTime ?
             Math.min(1.0, Math.max(0.0, (fadeTime - distanceTime) / fadeTime)) : 1.0;
-        console.log(distanceTime, filterAmp);
+        // console.log(distanceTime, filterAmp);
         const midZone = 50;
         const deadZone = 25;
         const ampMax = 20;
         const amplitudeA = Math.min(ampMax, Math.max(0, (interpolatedValue + deadZone - midZone) / 50 * ampMax ));
         const amplitudeB = Math.min(ampMax, Math.max(0, (midZone - interpolatedValue + deadZone) / 50 * ampMax ));
         // const amplitude = 20 - Math.floor(interpolatedValue / 100 * 20); // 0..20
-        const pulseDuration = 1;
-        this.coyote.writePatternA({ amplitude: amplitudeA * filterAmp, pulseDuration, dutyCycle: 9});
-        this.coyote.writePatternB({ amplitude: amplitudeB * filterAmp, pulseDuration, dutyCycle: 9});
+        const pulseDuration = 9;
+        this.coyote.writePatternA({ amplitude: amplitudeA * filterAmp, pulseDuration, dutyCycle: 1});
+        this.coyote.writePatternB({ amplitude: amplitudeB * filterAmp, pulseDuration, dutyCycle: 1});
       }
 
       if (!this.paused) {
