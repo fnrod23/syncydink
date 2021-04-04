@@ -373,11 +373,20 @@ export default class App extends Vue {
             : this.hapticsCommands[this.lastHapticsIndexRetrieved + 1].Position;
 
         const interpolatedValue = d3.interpolate(Position, NextPosition)((currentTime - Time) / (NextTime - Time));
-
-        const amplitude = 31 - Math.floor(interpolatedValue / 100 * 21); // 10-31
+	// check for pause Fade
+	const pauseTime = 500;
+	let distanceTime = Math.min((currentTime - Time),(NextTime - currentTime)); // distance to next action in script
+	if (Time == 0) distanceTime = NextTime - currentTime; // fade in on first action.
+	const filterAmp = distanceTime > pauseTime ? (pauseTime - distanceTime) / distanceTime : 1.0; // if distance is longer than set pauseTime, fade linearly.
+	const midZone = 50;
+	const deadZone = 25;
+	const ampMax = 20;
+	const amplitudeA = Math.min(ampMax,Math.max(0, (interpolatedValue + deadZone-midZone) / 50 * ampMax ));
+	const amplitudeB = Math.min(ampMax,Math.max(0, (midZone - interpolatedValue + deadZone) / 50 * ampMax ));
+//        const amplitude = 20 - Math.floor(interpolatedValue / 100 * 20); // 0..20
         const pulseDuration = 10;
-        this.coyote.writePatternA({ amplitude, pulseDuration, dutyCycle: 16});
-        this.coyote.writePatternB({ amplitude: 31 - amplitude, pulseDuration, dutyCycle: 16});
+        this.coyote.writePatternA({ amplitude: amplitudeA*filterAmp, pulseDuration, dutyCycle: 16});
+        this.coyote.writePatternB({ amplitude: amplitudeB*filterAmp, pulseDuration, dutyCycle: 16});
       }
 
       if (!this.paused) {
