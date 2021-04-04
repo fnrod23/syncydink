@@ -381,8 +381,9 @@ export default class App extends Vue {
           distanceTime = NextTime - currentTime; // fade in on first action.
         }
 
-        // if distance is longer than set pauseTime, fade linearly.
-        const filterAmp = distanceTime > pauseTime ? (pauseTime - distanceTime) / distanceTime : 1.0;
+        // if distance is longer than pauseTime, fade linearly.
+        const filterAmp = (NextTime - Time) > pauseTime ?
+            Math.min(1.0, Math.max(0.0, (pauseTime - distanceTime) / pauseTime)) : 1.0;
         console.log(distanceTime, filterAmp);
         const midZone = 50;
         const deadZone = 25;
