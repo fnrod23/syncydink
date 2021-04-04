@@ -137,7 +137,7 @@
                       v-bind:label="'Haptics Offset (' + hapticsOffsetMillis.toLocaleString() + 'ms)'"
             v-model="hapticsOffsetMillis"
             class="align-center"
-            :max="500"
+            :max="5000"
             :min="0"
           />
                   </v-flex>
