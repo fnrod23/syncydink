@@ -276,7 +276,7 @@ export default class App extends Vue {
 
         const interpolatedValue = d3.interpolate(Position, NextPosition)((currentTime - Time) / (NextTime - Time));
         // check for pause Fade
-        const pauseTime = 5000;
+        const pauseTime = 2500;
         const fadeTime = 300;
         let distanceTime =
             Math.min((currentTime - Time), (NextTime - currentTime)); // distance to next action in script

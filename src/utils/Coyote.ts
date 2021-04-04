@@ -182,7 +182,7 @@ export async function pairDevice(batteryChangeCallback?: (batteryLevel: number) 
         timerHandle = window.setInterval(async () => {
             await patternACharacteristic.writeValue(encodePattern(patternA));
             await patternBCharacteristic.writeValue(encodePattern(patternB));
-        }, 40);
+        }, 100);
     }
 
     function stopTimer() {
