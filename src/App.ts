@@ -384,7 +384,7 @@ export default class App extends Vue {
 	const amplitudeA = Math.min(ampMax,Math.max(0, (interpolatedValue + deadZone-midZone) / 50 * ampMax ));
 	const amplitudeB = Math.min(ampMax,Math.max(0, (midZone - interpolatedValue + deadZone) / 50 * ampMax ));
 //        const amplitude = 20 - Math.floor(interpolatedValue / 100 * 20); // 0..20
-        const pulseDuration = 10;
+        const pulseDuration = 10; //TEST
         this.coyote.writePatternA({ amplitude: amplitudeA*filterAmp, pulseDuration, dutyCycle: 16});
         this.coyote.writePatternB({ amplitude: amplitudeB*filterAmp, pulseDuration, dutyCycle: 16});
       }
