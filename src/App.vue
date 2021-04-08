@@ -172,11 +172,11 @@
                       v-if="coyote === null"
                       @click="connectCoyote">Connect</v-btn>
                   <v-subheader>Max. Power Factor</v-subheader>
-                  <v-slider v-model="coyoteMaxAmp" hint="Values larger than 20 can lead to tingling" class="align-center" :max="31" :min="1" persistent-hint />
+                  <v-slider v-model="coyoteMaxAmp" hint="Values larger than 20 can lead to tingling" class="align-center" thumb-label :max="31" :min="1" persistent-hint />
                   <v-subheader>Pause Detection</v-subheader>
                   <v-checkbox v-model="coyotePause" label="Fade In/Out on detected Pauses" checked />
-                  <v-slider v-model="coyotePauseDuration" bind:label="Min Pause (' + coyotePauseDuration.toLocaleString() + 'ms)'" hint="Duration between two actions to be recognized as Pause" min="100"  max="5000" persistent-hint/>
-                  <v-slider v-model="coyoteFadeDuration" bind:label="Fade Duration (' + coyoteFadeDuration.toLocaleString() + 'ms)'" :min="50" :max="2500" />
+                  <v-slider v-model="coyotePauseDuration" class="align-center" bind:label="Min Pause (' + coyotePauseDuration.toLocaleString() + 'ms)'" hint="Duration between two actions to be recognized as Pause" min="100"  max="5000" persistent-hint/>
+                  <v-slider v-model="coyoteFadeDuration" class="align-center" bind:label="Fade Duration (' + coyoteFadeDuration.toLocaleString() + 'ms)'" :min="50" :max="2500" />
                 </v-layout>
               </v-tab-item>
               <v-tab-item id="buttplugpanel">
