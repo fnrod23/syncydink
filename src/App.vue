@@ -91,12 +91,12 @@
             <v-tab href="#syncydink">
               Syncydink
             </v-tab>
-            <v-tab href="#buttplugpanel">
-              Buttplug
-            </v-tab>
             <v-tab href="#coyotepanel">
               Coyote
             </v-tab>
+            <v-tab href="#buttplugpanel">
+              Buttplug
+            </v-tab>            
             <v-tab href="#aboutpanel">
               About
             </v-tab>
@@ -137,8 +137,9 @@
                       v-bind:label="'Haptics Offset (' + hapticsOffsetMillis.toLocaleString() + 'ms)'"
             v-model="hapticsOffsetMillis"
             class="align-center"
-            :max="5000"
+            :max="1000"
             :min="0"
+            :step="10"
           />
                   </v-flex>
 
@@ -150,26 +151,19 @@
                        </v-flex> -->
                 </v-layout>
               </v-tab-item>
-              <v-tab-item id="buttplugpanel">
-                <buttplug-panel
-                  ref="buttplugPanel"
-                  @deviceconnected="OnDeviceConnected"
-                  @devicedisconnected="OnDeviceDisconnected"
-                />
-              </v-tab-item>
               <v-tab-item id="coyotepanel">
                 <v-layout column id="buttplug-connection-manager" class="buttplug-sidebar">
                   <v-subheader>Connection</v-subheader>
                   <v-flex row v-if="coyote !== null">
                     <v-text-field
                         aria-readonly="true"
-                        label="Power A"
+                        label="Power A (set on device)"
                         class="form-text v-input--is-readonly"
                         v-model="coyotePower.powerA">
                     </v-text-field>
                     <v-text-field
                         aria-readonly="true"
-                        label="Power B"
+                        label="Power B (set on device)"
                         class="form-text v-input--is-readonly"
                         v-model="coyotePower.powerB">
                     </v-text-field>
@@ -177,8 +171,21 @@
                   <v-btn
                       v-if="coyote === null"
                       @click="connectCoyote">Connect</v-btn>
+                  <v-subheader>Max. Power Factor</v-subheader>
+                  <v-slider v-model="coyoteMaxAmp" hint="Values larger than 20 can lead to tingling" class="align-center" :max="31" :min="1" persistent-hint />
+                  <v-subheader>Pause Detection</v-subheader>
+                  <v-checkbox v-model="coyotePause" label="Fade In/Out on detected Pauses" checked />
+                  <v-slider v-model="coyotePauseDuration" bind:label="Min Pause (' + coyotePauseDuration.toLocaleString() + 'ms)'" hint="Duration between two actions to be recognized as Pause" min="100"  max="5000" persistent-hint/>
+                  <v-slider v-model="coyoteFadeDuration" bind:label="Fade Duration (' + coyoteFadeDuration.toLocaleString() + 'ms)'" min="50", :max="(coyotePauseDuration/2)" />
                 </v-layout>
               </v-tab-item>
+              <v-tab-item id="buttplugpanel">
+                <buttplug-panel
+                  ref="buttplugPanel"
+                  @deviceconnected="OnDeviceConnected"
+                  @devicedisconnected="OnDeviceDisconnected"
+                />
+              </v-tab-item>              
               <v-tab-item id="aboutpanel">
                 <p><b>Syncydink</b></p>
                 <p>Version: <a :href="'https://github.com/metafetish/syncydink/tree/' + config.build_commit">{{ config.build_commit }}</a></p>

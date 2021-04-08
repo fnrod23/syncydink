@@ -76,6 +76,10 @@ export default class App extends Vue {
 
   // Coyote properties
   private coyotePower: CoyotePower = { powerA: 0, powerB: 0 };
+  private coyoteMaxAmp: number = 20;
+  private coyotePause: boolean = true;
+  private coyotePauseDuration: number = 2500;
+  private coyoteFadeDuration: number = 300;
 
   /////////////////////////////////////
   // Component and UI methods
@@ -236,10 +240,12 @@ export default class App extends Vue {
         // We're at the end of our haptics data
         return;
       }
+      /*
       if (offsetPlayTime <= this.commandTimes[this.lastIndexRetrieved + 1]) {
         this.runHapticsLoop();
         return;
       }
+      */
       // There are faster ways to do this.
       while (offsetPlayTime > this.commandTimes[this.lastIndexRetrieved + 1]) {
         this.lastIndexRetrieved += 1;
@@ -275,24 +281,23 @@ export default class App extends Vue {
             : this.hapticsCommands[this.lastHapticsIndexRetrieved + 1].Position;
 
         const interpolatedValue = d3.interpolate(Position, NextPosition)((currentTime - Time) / (NextTime - Time));
-        // check for pause Fade
-        const pauseTime = 2500;
-        const fadeTime = 300;
         let distanceTime =
             Math.min((currentTime - Time), (NextTime - currentTime)); // distance to next action in script
         if (Time === 0) {
           distanceTime = NextTime - currentTime; // fade in on first action.
         }
 
-        // if distance is longer than pauseTime, fade linearly.
-        const filterAmp = (NextTime - Time) > pauseTime ?
-            Math.min(1.0, Math.max(0.0, (fadeTime - distanceTime) / fadeTime)) : 1.0;
+        // if distance is longer than coyotePauseDuration, fade linearly.
+        const filterAmp = (coyotePause && (NextTime - Time) > coyotePauseDuration) ?
+            Math.min(1.0, Math.max(0.0, (fadeTime - distanceTime) / coyoteFadeDuration)) : 1.0;
         // console.log(distanceTime, filterAmp);
         const midZone = 50;
         const deadZone = 25;
         const ampMax = 20;
-        const amplitudeA = Math.min(ampMax, Math.max(0, (interpolatedValue + deadZone - midZone) / 50 * ampMax ));
-        const amplitudeB = Math.min(ampMax, Math.max(0, (midZone - interpolatedValue + deadZone) / 50 * ampMax ));
+        const amplitudeA = Math.min(coyoteMaxAmp,
+            Math.max(0, (interpolatedValue + deadZone - midZone) / 50 * coyoteMaxAmp ));
+        const amplitudeB = Math.min(coyoteMaxAmp,
+            Math.max(0, (midZone - interpolatedValue + deadZone) / 50 * coyoteMaxAmp ));
         // const amplitude = 20 - Math.floor(interpolatedValue / 100 * 20); // 0..20
         const pulseDuration = 9;
         this.coyote.writePatternA({ amplitude: amplitudeA * filterAmp, pulseDuration, dutyCycle: 1});
