@@ -176,7 +176,7 @@
                   <v-subheader>Pause Detection</v-subheader>
                   <v-checkbox v-model="coyotePause" label="Fade In/Out on detected Pauses" checked />
                   <v-slider v-model="coyotePauseDuration" bind:label="Min Pause (' + coyotePauseDuration.toLocaleString() + 'ms)'" hint="Duration between two actions to be recognized as Pause" min="100"  max="5000" persistent-hint/>
-                  <v-slider v-model="coyoteFadeDuration" bind:label="Fade Duration (' + coyoteFadeDuration.toLocaleString() + 'ms)'" min="50", :max="(coyotePauseDuration/2)" />
+                  <v-slider v-model="coyoteFadeDuration" bind:label="Fade Duration (' + coyoteFadeDuration.toLocaleString() + 'ms)'" min="50", :max="2500" />
                 </v-layout>
               </v-tab-item>
               <v-tab-item id="buttplugpanel">
